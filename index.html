@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Conversor de Monedas Global | Tasas en Vivo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Ambient background glow effects -->
+  <div class="ambient-glow glow-1"></div>
+  <div class="ambient-glow glow-2"></div>
+
+  <div class="container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="brand-wrapper">
+        <div class="logo-badge">
+          <i data-lucide="arrow-left-right" style="width: 24px; height: 24px;"></i>
+        </div>
+        <div>
+          <h1>Conversor de Monedas</h1>
+          <p>Cambio de divisas en tiempo real con banderas oficiales</p>
+        </div>
+      </div>
+
+      <div class="header-controls">
+        <div id="statusBadge" class="status-badge">
+          <span class="status-dot"></span>
+          <span id="statusText">Tasas en vivo</span>
+        </div>
+        <button id="themeToggle" class="theme-toggle" title="Cambiar tema claro/oscuro" aria-label="Cambiar tema">
+          <i id="themeIcon" data-lucide="sun" style="width: 18px; height: 18px;"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Converter Card -->
+    <main class="converter-card">
+      <!-- Input Amount -->
+      <div class="field-group">
+        <label for="amountInput" class="field-label">Cantidad a convertir</label>
+        <div class="input-container">
+          <span id="inputCurrencySymbol" class="currency-symbol-tag">$</span>
+          <input 
+            type="number" 
+            id="amountInput" 
+            class="amount-input" 
+            value="100" 
+            min="0" 
+            step="any" 
+            placeholder="0.00"
+            autocomplete="off"
+          >
+          <button type="button" id="clearAmountBtn" class="clear-input-btn" title="Limpiar cantidad" aria-label="Limpiar cantidad">
+            <i data-lucide="x" style="width: 18px; height: 18px;"></i>
+          </button>
+        </div>
+        <!-- Quick presets -->
+        <div class="preset-buttons">
+          <button type="button" class="preset-chip" data-amount="10">+10</button>
+          <button type="button" class="preset-chip" data-amount="50">+50</button>
+          <button type="button" class="preset-chip" data-amount="100">+100</button>
+          <button type="button" class="preset-chip" data-amount="500">+500</button>
+          <button type="button" class="preset-chip" data-amount="1000">+1,000</button>
+        </div>
+      </div>
+
+      <!-- Currency Selectors with Flags -->
+      <div class="selectors-row">
+        <!-- From Currency -->
+        <div class="currency-select-wrapper" id="fromCurrencyWrapper">
+          <label class="field-label">De (Origen)</label>
+          <div class="custom-select-trigger" id="fromTrigger" tabindex="0">
+            <div class="select-info">
+              <img id="fromFlag" class="flag-img" src="" alt="Bandera origen">
+              <div class="currency-texts">
+                <span id="fromCode" class="currency-code">USD</span>
+                <span id="fromName" class="currency-name">Dólar estadounidense</span>
+              </div>
+            </div>
+            <i data-lucide="chevron-down" class="chevron-icon"></i>
+          </div>
+
+          <!-- Dropdown Popover -->
+          <div class="dropdown-popover" id="fromPopover">
+            <div class="search-container">
+              <i data-lucide="search" class="search-icon"></i>
+              <input type="text" class="search-input" id="fromSearch" placeholder="Buscar moneda o país...">
+            </div>
+            <ul class="options-list" id="fromOptions"></ul>
+          </div>
+        </div>
+
+        <!-- Swap Button -->
+        <div class="swap-btn-container">
+          <button id="swapBtn" class="swap-btn" title="Intercambiar monedas" aria-label="Intercambiar monedas">
+            <i data-lucide="arrow-left-right" style="width: 20px; height: 20px;"></i>
+          </button>
+        </div>
+
+        <!-- To Currency -->
+        <div class="currency-select-wrapper" id="toCurrencyWrapper">
+          <label class="field-label">A (Destino)</label>
+          <div class="custom-select-trigger" id="toTrigger" tabindex="0">
+            <div class="select-info">
+              <img id="toFlag" class="flag-img" src="" alt="Bandera destino">
+              <div class="currency-texts">
+                <span id="toCode" class="currency-code">EUR</span>
+                <span id="toName" class="currency-name">Euro</span>
+              </div>
+            </div>
+            <i data-lucide="chevron-down" class="chevron-icon"></i>
+          </div>
+
+          <!-- Dropdown Popover -->
+          <div class="dropdown-popover" id="toPopover">
+            <div class="search-container">
+              <i data-lucide="search" class="search-icon"></i>
+              <input type="text" class="search-input" id="toSearch" placeholder="Buscar moneda o país...">
+            </div>
+            <ul class="options-list" id="toOptions"></ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Result Box -->
+      <section class="result-box" aria-live="polite">
+        <div class="result-header">
+          <span class="result-caption">Resultado del cambio</span>
+          <button id="copyBtn" class="copy-btn" title="Copiar al portapapeles">
+            <i data-lucide="copy" style="width: 14px; height: 14px;"></i>
+            <span>Copiar</span>
+          </button>
+        </div>
+
+        <div class="converted-display">
+          <span id="convertedAmount" class="converted-number">0.00</span>
+          <span id="targetCurrencyCode" class="converted-target-code">EUR</span>
+        </div>
+
+        <div class="rate-details">
+          <span id="exchangeRateFormula" class="rate-formula">1 USD = 0.92 EUR</span>
+          <span id="lastUpdatedText" class="rate-updated">Actualizado recientemente</span>
+        </div>
+      </section>
+
+      <!-- Secondary Info Section -->
+      <div class="secondary-section">
+        <!-- Quick Equivalents Table -->
+        <div class="info-card">
+          <h2 class="info-card-title">
+            <i data-lucide="calculator" style="width: 16px; height: 16px; color: var(--accent-primary);"></i>
+            Equivalencias Rápidas
+          </h2>
+          <div class="conversion-matrix" id="conversionMatrix">
+            <!-- Dynamically generated rows -->
+          </div>
+        </div>
+
+        <!-- Popular Currencies Grid -->
+        <div class="info-card">
+          <h2 class="info-card-title">
+            <i data-lucide="trending-up" style="width: 16px; height: 16px; color: var(--accent-secondary);"></i>
+            Otras Monedas Populares
+          </h2>
+          <div class="popular-grid" id="popularGrid">
+            <!-- Dynamically generated popular conversions -->
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+      <p>Tasas de cambio de referencia provistas por ExchangeRate-API • Banderas oficiales de FlagCDN</p>
+    </footer>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="toast-notice">
+    <i data-lucide="check-circle" style="width: 18px; height: 18px;"></i>
+    <span id="toastMessage">¡Copiado al portapapeles!</span>
+  </div>
+
+  <!-- Scripts -->
+  <script src="currencies.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
