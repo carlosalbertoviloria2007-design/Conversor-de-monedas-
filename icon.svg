@@ -1,0 +1,114 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="50%" stop-color="#1e1b4b"/>
+      <stop offset="100%" stop-color="#090d16"/>
+    </linearGradient>
+
+    <!-- Glowing Cyan/Indigo Gradient -->
+    <linearGradient id="arrowIndigo" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="50%" stop-color="#6366f1"/>
+      <stop offset="100%" stop-color="#4f46e5"/>
+    </linearGradient>
+
+    <!-- Glowing Emerald/Teal Gradient -->
+    <linearGradient id="arrowEmerald" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#059669"/>
+      <stop offset="50%" stop-color="#10b981"/>
+      <stop offset="100%" stop-color="#34d399"/>
+    </linearGradient>
+
+    <!-- Metallic Gold/Coin Gradient -->
+    <linearGradient id="coinGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fbbf24"/>
+      <stop offset="60%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#d97706"/>
+    </linearGradient>
+
+    <!-- Glass Glow Filter -->
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="14" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+
+    <filter id="softGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="30" result="blur"/>
+    </filter>
+
+    <!-- Frosted Glass Sheen Gradient -->
+    <linearGradient id="glassSheen" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.25"/>
+      <stop offset="35%" stop-color="#ffffff" stop-opacity="0.05"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <!-- App Icon Base: Squircle with border -->
+  <rect x="16" y="16" width="480" height="480" rx="112" ry="112" fill="url(#bgGrad)"/>
+  <rect x="16" y="16" width="480" height="480" rx="112" ry="112" fill="none" stroke="rgba(255,255,255,0.14)" stroke-width="3"/>
+
+  <!-- Ambient Background Nebulas -->
+  <circle cx="160" cy="180" r="110" fill="#6366f1" opacity="0.35" filter="url(#softGlow)"/>
+  <circle cx="350" cy="330" r="110" fill="#10b981" opacity="0.30" filter="url(#softGlow)"/>
+  <circle cx="340" cy="170" r="80" fill="#06b6d4" opacity="0.25" filter="url(#softGlow)"/>
+
+  <!-- Glass Card Inner Container -->
+  <g filter="url(#glow)">
+    <!-- Top Arc Arrow (Left to Right) -->
+    <path d="M 140 220 C 140 148, 200 120, 275 120 C 330 120, 370 145, 395 180" 
+          fill="none" 
+          stroke="url(#arrowIndigo)" 
+          stroke-width="36" 
+          stroke-linecap="round"/>
+    
+    <!-- Top Arrow Head -->
+    <path d="M 370 135 L 420 185 L 350 205 Z" 
+          fill="url(#arrowIndigo)"/>
+
+    <!-- Bottom Arc Arrow (Right to Left) -->
+    <path d="M 372 292 C 372 364, 312 392, 237 392 C 182 392, 142 367, 117 332" 
+          fill="none" 
+          stroke="url(#arrowEmerald)" 
+          stroke-width="36" 
+          stroke-linecap="round"/>
+
+    <!-- Bottom Arrow Head -->
+    <path d="M 142 377 L 92 327 L 162 307 Z" 
+          fill="url(#arrowEmerald)"/>
+  </g>
+
+  <!-- Central Currency Orb: Floating Golden Coin / Globe with Currency symbols -->
+  <g transform="translate(256, 256)">
+    <!-- Outer Glow -->
+    <circle cx="0" cy="0" r="76" fill="#0f172a" stroke="rgba(255,255,255,0.2)" stroke-width="3"/>
+    <circle cx="0" cy="0" r="66" fill="url(#coinGrad)" opacity="0.95" filter="url(#glow)"/>
+    
+    <!-- Inner Coin Details -->
+    <circle cx="0" cy="0" r="56" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="2" stroke-dasharray="4 4"/>
+    
+    <!-- Currency Symbols Glyph ($ and € interlocked) -->
+    <!-- Stylized Currency Exchange Mark -->
+    <text x="0" y="19" 
+          font-family="'Plus Jakarta Sans', system-ui, -apple-system, sans-serif" 
+          font-size="64" 
+          font-weight="900" 
+          fill="#ffffff" 
+          text-anchor="middle"
+          filter="drop-shadow(0 3px 6px rgba(0,0,0,0.4))">$</text>
+  </g>
+
+  <!-- Accent sparkles / dots -->
+  <circle cx="160" cy="140" r="5" fill="#38bdf8" opacity="0.9"/>
+  <circle cx="360" cy="370" r="5" fill="#34d399" opacity="0.9"/>
+  <circle cx="390" cy="130" r="4" fill="#ffffff" opacity="0.8"/>
+  <circle cx="120" cy="380" r="4" fill="#ffffff" opacity="0.8"/>
+
+  <!-- Glass Reflection Diagonal Gloss -->
+  <path d="M 16 128 C 16 64, 64 16, 128 16 L 384 16 C 448 16, 496 64, 496 128 L 496 180 L 16 340 Z" 
+        fill="url(#glassSheen)" 
+        pointer-events="none"/>
+</svg>
+

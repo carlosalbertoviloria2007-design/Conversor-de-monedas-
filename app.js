@@ -10,6 +10,8 @@ const state = {
   highlightedIndex: -1
 };
 
+let toastTimeout = null;
+
 // Elementos del DOM
 const elements = {
   amountInput: document.getElementById("amountInput"),
@@ -18,6 +20,7 @@ const elements = {
   presetChips: document.querySelectorAll(".preset-chip"),
   
   // From Trigger & Popover
+  fromCurrencyWrapper: document.getElementById("fromCurrencyWrapper"),
   fromTrigger: document.getElementById("fromTrigger"),
   fromFlag: document.getElementById("fromFlag"),
   fromCode: document.getElementById("fromCode"),
@@ -27,6 +30,7 @@ const elements = {
   fromOptions: document.getElementById("fromOptions"),
   
   // To Trigger & Popover
+  toCurrencyWrapper: document.getElementById("toCurrencyWrapper"),
   toTrigger: document.getElementById("toTrigger"),
   toFlag: document.getElementById("toFlag"),
   toCode: document.getElementById("toCode"),
@@ -52,6 +56,15 @@ const elements = {
   themeIcon: document.getElementById("themeIcon")
 };
 
+// Normalizar texto para búsquedas (elimina tildes y mayúsculas: ej. "dólar" -> "dolar")
+function normalizeText(text) {
+  return (text || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+}
+
 // Obtener datos de la moneda
 function getCurrency(code) {
   return CURRENCIES.find(c => c.code === code) || CURRENCIES[0];
@@ -59,7 +72,7 @@ function getCurrency(code) {
 
 // Generar URL de la bandera oficial con FlagCDN
 function getFlagUrl(flagCode) {
-  if (!flagCode) return "https://flagcdn.com/w40/un.png";
+  if (!flagCode) return "icon-192.png";
   return `https://flagcdn.com/w40/${flagCode.toLowerCase()}.png`;
 }
 
@@ -70,6 +83,7 @@ async function initApp() {
   renderOptionsList("from");
   renderOptionsList("to");
   attachEventListeners();
+  updateClearButtonVisibility();
   
   // Obtener tasas en tiempo real
   await fetchLiveRates();
@@ -77,10 +91,11 @@ async function initApp() {
   // Realizar conversión inicial
   calculateConversion();
 
-  // Refrescar iconos Lucide
+  // Refrescar iconos Lucide o fallback offline
   refreshIcons();
 }
 
+// Manejar iconos con soporte offline si falla el CDN de Lucide
 function refreshIcons() {
   if (window.lucide && typeof window.lucide.createIcons === "function") {
     window.lucide.createIcons();
@@ -134,13 +149,19 @@ function renderSelectedCurrencies() {
 
   elements.fromFlag.src = getFlagUrl(from.flag);
   elements.fromFlag.alt = `Bandera de ${from.country}`;
-  elements.fromFlag.onerror = () => { elements.fromFlag.src = "https://flagcdn.com/w40/un.png"; };
+  elements.fromFlag.onerror = function() {
+    this.onerror = null;
+    this.src = "icon-192.png";
+  };
   elements.fromCode.textContent = from.code;
   elements.fromName.textContent = `${from.name} (${from.country})`;
 
   elements.toFlag.src = getFlagUrl(to.flag);
   elements.toFlag.alt = `Bandera de ${to.country}`;
-  elements.toFlag.onerror = () => { elements.toFlag.src = "https://flagcdn.com/w40/un.png"; };
+  elements.toFlag.onerror = function() {
+    this.onerror = null;
+    this.src = "icon-192.png";
+  };
   elements.toCode.textContent = to.code;
   elements.toName.textContent = `${to.name} (${to.country})`;
 
@@ -148,18 +169,18 @@ function renderSelectedCurrencies() {
   elements.targetCurrencyCode.textContent = to.code;
 }
 
-// Renderizar la lista de opciones para un desplegable
+// Renderizar la lista de opciones para un desplegable con soporte para tildes
 function renderOptionsList(type, filterQuery = "") {
   const container = type === "from" ? elements.fromOptions : elements.toOptions;
   const currentSelected = type === "from" ? state.fromCurrency : state.toCurrency;
   
-  const query = filterQuery.trim().toLowerCase();
+  const query = normalizeText(filterQuery);
   
   const filtered = CURRENCIES.filter(curr => {
     return (
-      curr.code.toLowerCase().includes(query) ||
-      curr.name.toLowerCase().includes(query) ||
-      curr.country.toLowerCase().includes(query)
+      normalizeText(curr.code).includes(query) ||
+      normalizeText(curr.name).includes(query) ||
+      normalizeText(curr.country).includes(query)
     );
   });
 
@@ -175,7 +196,7 @@ function renderOptionsList(type, filterQuery = "") {
     return `
       <li class="currency-option ${isSelected ? 'selected' : ''}" data-code="${curr.code}" data-type="${type}" data-index="${idx}">
         <div class="option-left">
-          <img class="flag-img" src="${getFlagUrl(curr.flag)}" alt="${curr.country}" loading="lazy" onerror="this.src='https://flagcdn.com/w40/un.png'">
+          <img class="flag-img" src="${getFlagUrl(curr.flag)}" alt="${curr.country}" loading="lazy" onerror="this.onerror=null; this.src='icon-192.png'">
           <div class="option-info">
             <span class="option-code">${curr.code}</span>
             <span class="option-country">${curr.name} • ${curr.country}</span>
@@ -219,12 +240,14 @@ function toggleDropdown(type) {
   state.activeDropdown = type;
 
   if (type === "from") {
+    elements.fromCurrencyWrapper.classList.add("open");
     elements.fromPopover.classList.add("open");
     elements.fromTrigger.classList.add("active");
     elements.fromSearch.value = "";
     renderOptionsList("from");
     setTimeout(() => elements.fromSearch.focus(), 60);
   } else {
+    elements.toCurrencyWrapper.classList.add("open");
     elements.toPopover.classList.add("open");
     elements.toTrigger.classList.add("active");
     elements.toSearch.value = "";
@@ -235,11 +258,24 @@ function toggleDropdown(type) {
 
 function closeDropdowns() {
   state.activeDropdown = null;
+  elements.fromCurrencyWrapper.classList.remove("open");
+  elements.toCurrencyWrapper.classList.remove("open");
   elements.fromPopover.classList.remove("open");
   elements.fromTrigger.classList.remove("active");
   elements.toPopover.classList.remove("open");
   elements.toTrigger.classList.remove("active");
   state.highlightedIndex = -1;
+}
+
+// Actualizar visibilidad del botón de limpiar cantidad
+function updateClearButtonVisibility() {
+  if (!elements.clearAmountBtn) return;
+  const val = elements.amountInput.value;
+  if (val && parseFloat(val) > 0) {
+    elements.clearAmountBtn.classList.remove("hidden");
+  } else {
+    elements.clearAmountBtn.classList.add("hidden");
+  }
 }
 
 // Calcular la tasa y el resultado
@@ -251,12 +287,13 @@ function calculateConversion() {
     amount = 0;
   }
   state.amount = amount;
+  updateClearButtonVisibility();
 
   const rateFrom = state.rates[state.fromCurrency] || 1;
   const rateTo = state.rates[state.toCurrency] || 1;
 
-  // Tasa unitaria de 'from' a 'to' (base USD)
-  const unitRate = (1 / rateFrom) * rateTo;
+  // Tasa unitaria con protección de división por cero
+  const unitRate = rateFrom > 0 ? (1 / rateFrom) * rateTo : 0;
   const total = amount * unitRate;
 
   // Formatear cantidades
@@ -265,7 +302,7 @@ function calculateConversion() {
 
   // Fórmula de tasa de cambio
   const formattedUnitRate = unitRate < 0.0001 ? unitRate.toFixed(6) : unitRate < 1 ? unitRate.toFixed(4) : unitRate.toFixed(2);
-  const inverseUnitRate = (1 / unitRate);
+  const inverseUnitRate = unitRate > 0 ? (1 / unitRate) : 0;
   const formattedInverse = inverseUnitRate < 0.0001 ? inverseUnitRate.toFixed(6) : inverseUnitRate < 1 ? inverseUnitRate.toFixed(4) : inverseUnitRate.toFixed(2);
 
   elements.exchangeRateFormula.textContent = `1 ${state.fromCurrency} = ${formattedUnitRate} ${state.toCurrency} • 1 ${state.toCurrency} = ${formattedInverse} ${state.fromCurrency}`;
@@ -283,7 +320,7 @@ function calculateConversion() {
 
 // Formato de números con separador de miles
 function formatCurrencyValue(val, currencyCode) {
-  // Para monedas sin decimales comunes
+  // Monedas sin decimales habituales
   const noDecimals = ["JPY", "KRW", "CLP", "COP", "PYG", "HUF", "IDR"];
   const maximumFractionDigits = noDecimals.includes(currencyCode) ? 0 : val < 1 && val > 0 ? 4 : 2;
 
@@ -310,7 +347,6 @@ function renderConversionMatrix(unitRate) {
 
 // Renderizar cuadrícula con monedas populares
 function renderPopularGrid(amount, rateFrom) {
-  // Lista de monedas destacadas
   const candidates = ["USD", "EUR", "GBP", "JPY", "MXN", "BRL"];
   const popular = candidates
     .filter(code => code !== state.fromCurrency && code !== state.toCurrency)
@@ -319,12 +355,12 @@ function renderPopularGrid(amount, rateFrom) {
   elements.popularGrid.innerHTML = popular.map(targetCode => {
     const curr = getCurrency(targetCode);
     const targetRate = state.rates[targetCode] || 1;
-    const result = (amount / rateFrom) * targetRate;
+    const result = rateFrom > 0 ? (amount / rateFrom) * targetRate : 0;
 
     return `
       <div class="popular-item" data-code="${curr.code}">
         <div class="popular-top">
-          <img class="popular-flag" src="${getFlagUrl(curr.flag)}" alt="${curr.country}" onerror="this.src='https://flagcdn.com/w40/un.png'">
+          <img class="popular-flag" src="${getFlagUrl(curr.flag)}" alt="${curr.country}" onerror="this.onerror=null; this.src='icon-192.png'">
           <span class="popular-code">${curr.code}</span>
         </div>
         <span class="popular-value">${curr.symbol} ${formatCurrencyValue(result, curr.code)}</span>
@@ -369,7 +405,7 @@ async function handleCopyResult() {
     if (navigator.clipboard && window.isSecureContext) {
       await navigator.clipboard.writeText(textToCopy);
     } else {
-      // Fallback para navegadores antiguos
+      // Fallback para entornos locales o navegadores sin Clipboard API
       const textArea = document.createElement("textarea");
       textArea.value = textToCopy;
       textArea.style.position = "fixed";
@@ -386,11 +422,14 @@ async function handleCopyResult() {
   }
 }
 
-// Mostrar notificación Toast
+// Mostrar notificación Toast con control de temporizadores
 function showToast(msg) {
+  if (toastTimeout) {
+    clearTimeout(toastTimeout);
+  }
   elements.toastMessage.textContent = msg;
   elements.toast.classList.add("show");
-  setTimeout(() => {
+  toastTimeout = setTimeout(() => {
     elements.toast.classList.remove("show");
   }, 2500);
 }
@@ -435,8 +474,9 @@ function handleSearchKeydown(e, type) {
     updateHighlight(options);
   } else if (e.key === "Enter") {
     e.preventDefault();
-    if (state.highlightedIndex >= 0 && options[state.highlightedIndex]) {
-      const selectedCode = options[state.highlightedIndex].getAttribute("data-code");
+    const targetIdx = state.highlightedIndex >= 0 ? state.highlightedIndex : 0;
+    if (options[targetIdx]) {
+      const selectedCode = options[targetIdx].getAttribute("data-code");
       selectCurrency(type, selectedCode);
     }
   }
@@ -445,10 +485,10 @@ function handleSearchKeydown(e, type) {
 function updateHighlight(options) {
   options.forEach((opt, idx) => {
     if (idx === state.highlightedIndex) {
-      opt.style.backgroundColor = "var(--dropdown-hover)";
+      opt.classList.add("highlighted");
       opt.scrollIntoView({ block: "nearest" });
     } else {
-      opt.style.backgroundColor = "";
+      opt.classList.remove("highlighted");
     }
   });
 }
@@ -459,6 +499,18 @@ function attachEventListeners() {
   elements.amountInput.addEventListener("input", () => {
     calculateConversion();
   });
+
+  // Evitar valores negativos o caracteres exponenciales
+  elements.amountInput.addEventListener("keydown", (e) => {
+    if (e.key === "-" || e.key === "e" || e.key === "E") {
+      e.preventDefault();
+    }
+  });
+
+  // Evitar cambios bruscos al hacer scroll con la rueda del ratón
+  elements.amountInput.addEventListener("wheel", (e) => {
+    e.target.blur();
+  }, { passive: true });
 
   // Limpiar cantidad
   if (elements.clearAmountBtn) {
@@ -522,5 +574,19 @@ function attachEventListeners() {
   elements.themeToggle.addEventListener("click", toggleTheme);
 }
 
+// Registro de Service Worker para PWA (solo en servidores web HTTP/HTTPS)
+function registerServiceWorker() {
+  if ("serviceWorker" in navigator && window.location.protocol.startsWith("http")) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("./sw.js")
+        .then((reg) => console.log("PWA Service Worker registrado con éxito:", reg.scope))
+        .catch((err) => console.warn("Aviso Service Worker:", err.message));
+    });
+  }
+}
+
 // Iniciar cuando el DOM esté listo
-document.addEventListener("DOMContentLoaded", initApp);
+document.addEventListener("DOMContentLoaded", () => {
+  initApp();
+  registerServiceWorker();
+});

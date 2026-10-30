@@ -1,16 +1,31 @@
 <!DOCTYPE html>
 <html lang="es" data-theme="dark">
+
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Conversor de Monedas Global | Tasas en Vivo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>CONVERSOR DE DIVISAS | Tu dinero En Otra Moneda</title>
+
+  <!-- PWA & Mobile Meta Tags -->
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/svg+xml" href="icon.svg">
+  <link rel="alternate icon" type="image/png" href="icon-192.png">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <meta name="theme-color" content="#000000">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Divisas">
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet">
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
   <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
   <!-- Ambient background glow effects -->
   <div class="ambient-glow glow-1"></div>
@@ -21,11 +36,14 @@
     <header class="app-header">
       <div class="brand-wrapper">
         <div class="logo-badge">
-          <i data-lucide="arrow-left-right" style="width: 24px; height: 24px;"></i>
+          <img src="icon.svg" alt="Logo Conversor" class="brand-logo-img">
         </div>
-        <div>
-          <h1>Conversor de Monedas</h1>
-          <p>Cambio de divisas en tiempo real con banderas oficiales</p>
+        <div class="brand-text-container">
+          <h1 class="brand-title">CONVERSOR DE DIVISAS</h1>
+          <p class="brand-subtitle">
+            <span class="subtitle-line-1">Tu dinero <span class="highlight-accent">En Otra Moneda</span></span>
+            <span class="subtitle-line-2"><span class="accent-bullet">-</span> Un cambio sencillo al instante</span>
+          </p>
         </div>
       </div>
 
@@ -47,17 +65,10 @@
         <label for="amountInput" class="field-label">Cantidad a convertir</label>
         <div class="input-container">
           <span id="inputCurrencySymbol" class="currency-symbol-tag">$</span>
-          <input 
-            type="number" 
-            id="amountInput" 
-            class="amount-input" 
-            value="100" 
-            min="0" 
-            step="any" 
-            placeholder="0.00"
-            autocomplete="off"
-          >
-          <button type="button" id="clearAmountBtn" class="clear-input-btn" title="Limpiar cantidad" aria-label="Limpiar cantidad">
+          <input type="number" id="amountInput" class="amount-input" value="100" min="0" step="any" placeholder="0.00"
+            autocomplete="off">
+          <button type="button" id="clearAmountBtn" class="clear-input-btn" title="Limpiar cantidad"
+            aria-label="Limpiar cantidad">
             <i data-lucide="x" style="width: 18px; height: 18px;"></i>
           </button>
         </div>
@@ -192,4 +203,5 @@
   <script src="currencies.js"></script>
   <script src="app.js"></script>
 </body>
+
 </html>
